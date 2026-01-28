@@ -24,11 +24,14 @@ class ExtendableRegistryLoader(models.AbstractModel):
     _description = "Extendable Registry Loader"
 
     def _register_hook(self):
-        # This method is called by Odoo when the registry is built,
-        # so in case the registry is rebuilt (cache invalidation, ...),
-        # we have to to rebuild the extendable classes. We use a new
-        # registry so we have an empty cache and we'll add extendable classes
-        # in it.
+        # Usar un registry compartido para todas las DBs
+        # Solo crear si no existe NINGUNO
+        if _extendable_registries_database:
+            # Ya existe un registry, reutilizarlo para esta DB
+            existing_registry = next(iter(_extendable_registries_database.values()))
+            _extendable_registries_database[self.env.cr.dbname] = existing_registry
+            return
+
         registry = self._init_global_registry()
         self.build_registry(registry)
 
